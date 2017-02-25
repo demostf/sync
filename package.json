@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "websocket": "^1.0.24"
+  },
+  "devDependencies": {
+    "@types/node": "^7.0.5",
+    "@types/websocket": "0.0.33",
+    "ts-node": "^2.1.0",
+    "typescript": "^2.2.1"
+  }
+}
