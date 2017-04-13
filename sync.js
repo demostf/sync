@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var websocket_1 = require("websocket");
 var http_1 = require("http");
 var sessions = {};

@@ -30,7 +30,8 @@ interface TickPacket {
 interface PlayPacket {
 	type: 'play';
 	session: string;
-	play: boolean;
+	play?: boolean;
+	tick?: boolean; //old sync server
 }
 
 type Packet = JoinPacket | CreatePacket | TickPacket | PlayPacket;
