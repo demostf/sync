@@ -54,6 +54,12 @@ function originIsAllowed(origin) {
 	return true;
 }
 
+function sendToSession(session: Session, message) {
+	for (const client of session.clients) {
+		client.sendUTF(JSON.stringify(message));
+	}
+}
+
 wsServer.on('request', function (request) {
 	if (!originIsAllowed(request.origin)) {
 		// Make sure we only accept requests from an allowed origin
@@ -92,23 +98,19 @@ wsServer.on('request', function (request) {
 				case 'tick':
 					if (sessions[data.session]) {
 						sessions[data.session].tick = data.tick;
-						for (const client of sessions[data.session].clients) {
-							client.sendUTF(JSON.stringify({
-								type: 'tick',
-								tick: data.tick
-							}));
-						}
+						sendToSession(sessions[data.session], {
+							type: 'tick',
+							tick: data.tick
+						});
 					}
 					break;
 				case 'play':
 					if (sessions[data.session]) {
 						sessions[data.session].playing = data.play;
-						for (const client of sessions[data.session].clients) {
-							client.sendUTF(JSON.stringify({
-								type: 'play',
-								play: data.play
-							}));
-						}
+						sendToSession(sessions[data.session], {
+							type: 'play',
+							play: data.play
+						});
 					}
 			}
 		}
@@ -123,6 +125,9 @@ wsServer.on('request', function (request) {
 						session.clients.splice(index, 1);
 					}
 					if (session.owner === connection) {
+						sendToSession(sessions[session.name], {
+							type: 'stop'
+						});
 						sessions[session.name] = null;
 						break;
 					}

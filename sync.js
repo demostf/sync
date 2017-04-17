@@ -1,5 +1,5 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
 var websocket_1 = require("websocket");
 var http_1 = require("http");
 var sessions = {};
@@ -17,6 +17,12 @@ var wsServer = new websocket_1.server({
 });
 function originIsAllowed(origin) {
     return true;
+}
+function sendToSession(session, message) {
+    for (var _i = 0, _a = session.clients; _i < _a.length; _i++) {
+        var client = _a[_i];
+        client.sendUTF(JSON.stringify(message));
+    }
 }
 wsServer.on('request', function (request) {
     if (!originIsAllowed(request.origin)) {
@@ -55,25 +61,19 @@ wsServer.on('request', function (request) {
                 case 'tick':
                     if (sessions[data.session]) {
                         sessions[data.session].tick = data.tick;
-                        for (var _i = 0, _a = sessions[data.session].clients; _i < _a.length; _i++) {
-                            var client = _a[_i];
-                            client.sendUTF(JSON.stringify({
-                                type: 'tick',
-                                tick: data.tick
-                            }));
-                        }
+                        sendToSession(sessions[data.session], {
+                            type: 'tick',
+                            tick: data.tick
+                        });
                     }
                     break;
                 case 'play':
                     if (sessions[data.session]) {
                         sessions[data.session].playing = data.play;
-                        for (var _b = 0, _c = sessions[data.session].clients; _b < _c.length; _b++) {
-                            var client = _c[_b];
-                            client.sendUTF(JSON.stringify({
-                                type: 'play',
-                                play: data.play
-                            }));
-                        }
+                        sendToSession(sessions[data.session], {
+                            type: 'play',
+                            play: data.play
+                        });
                     }
             }
         }
@@ -88,6 +88,9 @@ wsServer.on('request', function (request) {
                         session.clients.splice(index, 1);
                     }
                     if (session.owner === connection) {
+                        sendToSession(sessions[session.name], {
+                            type: 'stop'
+                        });
                         sessions[session.name] = null;
                         break;
                     }
@@ -95,4 +98,10 @@ wsServer.on('request', function (request) {
             }
         }
     });
+});
+process.on('SIGINT', function () {
+    process.exit();
+});
+process.on('SIGTERM', function () {
+    process.exit();
 });
